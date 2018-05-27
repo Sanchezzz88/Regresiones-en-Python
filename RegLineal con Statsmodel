@@ -1,0 +1,55 @@
+#LIBRERIAS NECESARIAS
+import math
+import numpy as np #library for nmerical functions
+import matplotlib #for plotting graphs
+import matplotlib.pyplot as plt
+from matplotlib import style #styles for plots
+import pandas as pd # making data frames
+import sklearn # library para modelo lineal y otros
+import warnings # para evitar advertencias en general
+from sklearn import linear_model
+from sklearn.model_selection import train_test_split
+warnings.simplefilter(action="ignore",category=FutureWarning)
+from sklearn.datasets import load_boston
+boston=load_boston()
+#VER LA BASE
+print(boston.data.shape)
+#son 506 registros y 13 columnas de datos
+df_x=pd.DataFrame(boston.data,columns=boston.feature_names)#armo dataframe para vars indeps
+df_y=pd.DataFrame(boston.target) #dataframe para vars dependientes (explicadas)
+df_x.head=(13)
+#No se para que pone head=13
+names=[i for i in list(df_x)]
+print(names)
+#Me da los nombres de columnas
+regr=linear_model.LinearRegression()
+#spliteamos la muestra en training data y test data!!!
+x_train,x_test,y_train,y_test=train_test_split(df_x,df_y,test_size=0.2,random_state=4)
+print(x_train.head())
+#PARA OLS!
+import statsmodels.api as sm
+from statsmodels.sandbox.regression.predstd import wls_prediction_std
+model1=sm.OLS(y_train,x_train)
+result=model1.fit()
+print(result.summary())
+
+#CORREMOS OTRO OLS CON MENOS EXPLICATIVAS PARA COMPARAR AKAIKE Y VER CUAL ES MEJOR
+model2=sm.OLS(y_train,x_train[["CRIM","ZN","CHAS","RM","DIS","RAD","TAX",\
+"PTRATIO","B","LSTAT"]])
+result2=model2.fit()
+print(result2.summary())
+
+#PARA TRATAR MULTICOLINEARIDAD
+import seaborn
+corr_df=x_train.corr(method="pearson")
+print("--------------------CREATE A CORRELATION PLOT-------------------------")
+#Ahora creamos una mask para mostrar solo el triangulo inferior del plot que es simétrico
+mask=np.zeros_like(corr_df)
+mask[np.triu_indices_from(mask)]=True
+#Creamos el heatmap con la libreria seaborn
+#Hay una lista con los colores disponibles en matplotlib.org
+seaborn.heatmap(corr_df,cmap="RdYlGn_r",vmax=1.0,vmin=-1.0,mask=mask,linewidths=2.5)
+#GIRAMOS LOS EJES PARA QUE SE VISUALICE MEJOR
+plt.yticks(rotation=0)
+plt.xticks(rotation=90)
+plt.show()
